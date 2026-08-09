@@ -1,3 +1,8 @@
+const dns = require("dns");
+dns.setServers([
+  "8.8.8.8",
+  "1.1.1.1"
+]);
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -6,10 +11,10 @@ const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion } = require("mongodb");
 
 // MiddleWere
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@crud-operation.zma1h9w.mongodb.net/?appName=CRUD-Operation`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@simple-crud-serv.sbd6kzc.mongodb.net/?appName=Simple-CRUD-Serv`
 
 
 const client = new MongoClient(uri, {
