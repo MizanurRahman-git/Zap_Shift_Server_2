@@ -28,6 +28,29 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
+
+    const db = client.db("zap_shift_db_2")
+    const parcelsCollection = db.collection('parcels')
+
+    app.get('/parcels', async(req, res)=> {
+      const query = {}
+      const {email} = req.query
+
+      if(email){
+        query.senderEmail = email
+      }
+
+      const cursor = parcelsCollection.find(query)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    app.post('/parcels', async(req, res)=>{
+      const parcel = req.body;
+      const result = await parcelsCollection.insertOne(parcel)
+      res.send(result)
+    })
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
