@@ -2,11 +2,11 @@ const dns = require("dns");
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 const express = require("express");
 const cors = require("cors");
-const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 // MiddleWere
 app.use(cors());
