@@ -64,16 +64,23 @@ async function run() {
       const session = await stripe.checkout.sessions.create({
         line_items: [
           {
-            price: "{{PRICE_ID}}",
+            price_data:{
+              currency:"USD",
+              unit_amount:1500,
+              product_data:{
+                name: paymentInfo.parcelName
+              }
+            },
             quantity: 1,
           },
         ],
+        customer_email: paymentInfo.senderEmail,
         mode: "payment",
         success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success`,
       });
     });
 
-    
+
     app.get("/parcel/:parcelId", async (req, res) => {
       const id = req.params.parcelId;
       const query = { _id: new ObjectId(id) };
