@@ -5,6 +5,7 @@ dns.setServers([
 ]);
 const express = require("express");
 const cors = require("cors");
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 3000;
@@ -60,6 +61,13 @@ async function run() {
       const query = {_id: new ObjectId(id)}
       const result = await parcelsCollection.deleteOne(query)
       res.send(result)
+    })
+
+    app.post('/create-checkout-session', async(req, res)=>{
+      const paymentInfo = req.body;
+      const session = await stripe.checkout.sessions.create({
+        
+      })
     })
 
     app.get('/parcel/:parcelId', async(req,res)=>{
