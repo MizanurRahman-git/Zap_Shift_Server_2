@@ -165,10 +165,10 @@ async function run() {
       const email = req.query.email
       const query = {}
       if(email){
-        query.customerEmail = email
+        query.senderEmail = email
       }
-
-      const cursor = paymentsCollection.find(query)
+      const option = {sort:{createdAt: -1}}
+      const cursor = parcelsCollection.find(query, option)
       const result = await cursor.toArray()
 
       res.send(result)
