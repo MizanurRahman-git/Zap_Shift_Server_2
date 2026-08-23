@@ -9,14 +9,6 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const crypto = require("crypto");
 
-const admin = require("firebase-admin");
-
-const serviceAccount = require("path/to/serviceAccountKey.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
 
 const generateTrackingId = () => {
   const prefix = "PRCL";
@@ -29,15 +21,6 @@ const generateTrackingId = () => {
 // MiddleWere
 app.use(cors());
 app.use(express.json());
-
-const verifyFbToken = (req, res, next) => {
-  const token = req.headers.authorization;
-  
-  if (!token) {
-    return res.status(401).send({ message: "Unauthorized Access" });
-  }
-  next();
-};
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@simple-crud-serv.sbd6kzc.mongodb.net/?appName=Simple-CRUD-Serv`;
 
@@ -54,8 +37,25 @@ async function run() {
     await client.connect();
 
     const db = client.db("zap_shift_db_2");
+    const usersCollection = db.collection("users");
     const parcelsCollection = db.collection("parcels");
     const paymentsCollection = db.collection("payments");
+
+
+    app.post('/users', async(req,res)=>{
+      const user = req.body;
+      user.user_Role = "user"
+      user.createdAt = new Date()
+
+      const email = user.email
+      const isEmailExist = await usersCollection.findOne({email})
+
+      if(isEmailExist){
+        return res.send({message: "Email Already Saved In Database"})
+      }
+      const result = await usersCollection.insertOne(user)
+      res.send(result)
+    })
 
     app.get("/parcels", async (req, res) => {
       const query = {};
@@ -178,7 +178,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/payments", verifyFbToken, async (req, res) => {
+    app.get("/payments", async (req, res) => {
       const email = req.query.email;
       const query = {};
       if (email) {
