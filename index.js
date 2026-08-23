@@ -9,6 +9,15 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const crypto = require("crypto");
 
+const admin = require("firebase-admin");
+
+const serviceAccount = require("path/to/serviceAccountKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+
 const generateTrackingId = () => {
   const prefix = "PRCL";
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -20,6 +29,15 @@ const generateTrackingId = () => {
 // MiddleWere
 app.use(cors());
 app.use(express.json());
+
+const verifyFbToken = (req, res, next) => {
+  const token = req.headers.authorization;
+  
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+  next();
+};
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@simple-crud-serv.sbd6kzc.mongodb.net/?appName=Simple-CRUD-Serv`;
 
@@ -98,7 +116,6 @@ async function run() {
       res.send({ url: session.url });
     });
 
-
     app.patch("/payment-success", async (req, res) => {
       const sessionId = req.query.session_id;
       const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -106,11 +123,11 @@ async function run() {
       const transactionId = session.payment_intent;
       const query = { transactionId: transactionId };
       const ispaymentExist = await paymentsCollection.findOne(query);
-  
+
       if (ispaymentExist) {
         return res.send({
-          trackingId:ispaymentExist.trackingId,
-          transactionId
+          trackingId: ispaymentExist.trackingId,
+          transactionId,
         });
       }
 
@@ -161,18 +178,18 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/payments', async(req,res)=>{
-      const email = req.query.email
-      const query = {}
-      if(email){
-        query.senderEmail = email
+    app.get("/payments", verifyFbToken, async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.senderEmail = email;
       }
-      const option = {sort:{createdAt: -1}}
-      const cursor = parcelsCollection.find(query, option)
-      const result = await cursor.toArray()
+      const option = { sort: { createdAt: -1 } };
+      const cursor = parcelsCollection.find(query, option);
+      const result = await cursor.toArray();
 
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
