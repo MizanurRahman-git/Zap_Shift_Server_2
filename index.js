@@ -9,7 +9,6 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const crypto = require("crypto");
 
-
 const generateTrackingId = () => {
   const prefix = "PRCL";
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -40,22 +39,22 @@ async function run() {
     const usersCollection = db.collection("users");
     const parcelsCollection = db.collection("parcels");
     const paymentsCollection = db.collection("payments");
+    const ridersCollection = db.collection("riders");
 
-
-    app.post('/users', async(req,res)=>{
+    app.post("/users", async (req, res) => {
       const user = req.body;
-      user.user_Role = "user"
-      user.createdAt = new Date()
+      user.user_Role = "user";
+      user.createdAt = new Date();
 
-      const email = user.email
-      const isEmailExist = await usersCollection.findOne({email})
+      const email = user.email;
+      const isEmailExist = await usersCollection.findOne({ email });
 
-      if(isEmailExist){
-        return res.send({message: "Email Already Saved In Database"})
+      if (isEmailExist) {
+        return res.send({ message: "Email Already Saved In Database" });
       }
-      const result = await usersCollection.insertOne(user)
-      res.send(result)
-    })
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
 
     app.get("/parcels", async (req, res) => {
       const query = {};
@@ -188,6 +187,38 @@ async function run() {
       const cursor = parcelsCollection.find(query, option);
       const result = await cursor.toArray();
 
+      res.send(result);
+    });
+
+    app.get('/riders', async(req,res)=>{
+      const query = {status:"pending"}
+      const cursor = ridersCollection.find(query)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    app.patch('/riders/:id', async(req, res)=>{
+      const id = req.params.id
+      const query = {_id: new ObjectId(id)}
+      const updateInfo = req.body
+      const update = {
+        $set:{status: updateInfo.status}
+      }
+      const result = await ridersCollection.updateOne(query, update)
+      res.send(result)
+    })
+
+    app.post("/riders", async (req, res) => {
+      const ridersInfo = req.body;
+      ridersInfo.status = "pending";
+      ridersInfo.createtAt = new Date();
+
+      const riderEmail = ridersInfo.riderEmail
+      const isExist = await ridersCollection.findOne({riderEmail});
+      if(isExist){
+        return res.status(401).send({message: "You Are Already You have already sent the request"})
+      }
+      const result = await ridersCollection.insertOne(ridersInfo);
       res.send(result);
     });
 
