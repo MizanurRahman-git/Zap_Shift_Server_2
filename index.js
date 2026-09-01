@@ -49,7 +49,7 @@ async function run() {
 
     app.post("/users", async (req, res) => {
       const user = req.body;
-      user.user_Role = "user";
+      user.user_Role = "User";
       user.createdAt = new Date();
 
       const email = user.email;
@@ -61,6 +61,18 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+
+    app.patch('/users/:id', async(req, res)=>{
+      const id = req.params.id
+      const updateRole = req.body
+      const query = {_id: new ObjectId(id)}
+      const changeRole = {
+        $set:{user_Role:updateRole.user_Role}
+      }
+
+      const result = await usersCollection.updateOne(query, changeRole)
+      res.send(result)
+    })
 
     app.get("/parcels", async (req, res) => {
       const query = {};
