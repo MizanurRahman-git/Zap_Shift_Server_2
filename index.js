@@ -41,6 +41,12 @@ async function run() {
     const paymentsCollection = db.collection("payments");
     const ridersCollection = db.collection("riders");
 
+    app.get('/users', async(req, res)=> {
+      const cursor = usersCollection.find()
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       user.user_Role = "user";
