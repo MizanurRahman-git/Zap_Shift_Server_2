@@ -47,6 +47,13 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/users/:email/role', async(req, res)=>{
+      const email = req.params.email
+      const query = {email}
+      const result = await usersCollection.findOne(query)
+      res.send(result)
+    })
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       user.user_Role = "User";
