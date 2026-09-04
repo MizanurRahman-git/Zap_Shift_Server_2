@@ -92,10 +92,14 @@ async function run() {
 
     app.get("/parcels", async (req, res) => {
       const query = {};
-      const { email } = req.query;
+      const { email, pandingPickup } = req.query;
 
       if (email) {
         query.senderEmail = email;
+      }
+
+      if(pandingPickup){
+        query.deliveryStatus = pandingPickup
       }
 
       const options = { sort: { createdAt: -1 } };
@@ -171,6 +175,7 @@ async function run() {
         const update = {
           $set: {
             paymentStatus: "paid",
+            deliveryStatus: "Pending-Pickup",
             trackingId: trackingIdGenerate,
             transactionId: session.payment_intent,
           },
