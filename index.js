@@ -42,7 +42,16 @@ async function run() {
     const ridersCollection = db.collection("riders");
 
     app.get('/users', async(req, res)=> {
-      const cursor = usersCollection.find()
+      const searchText = req.query.searchText
+      const query = {}
+
+      if(searchText){
+        query.$or =[
+          {name: { $regex:searchText, $options:"i"}},
+          {email: { $regex:searchText, $options:"i"}}
+        ]
+      }
+      const cursor = usersCollection.find(query).limit(5)
       const result = await cursor.toArray()
       res.send(result)
     })
