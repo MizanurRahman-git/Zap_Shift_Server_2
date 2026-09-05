@@ -41,27 +41,27 @@ async function run() {
     const paymentsCollection = db.collection("payments");
     const ridersCollection = db.collection("riders");
 
-    app.get('/users', async(req, res)=> {
-      const searchText = req.query.searchText
-      const query = {}
+    app.get("/users", async (req, res) => {
+      const searchText = req.query.searchText;
+      const query = {};
 
-      if(searchText){
-        query.$or =[
-          {name: { $regex:searchText, $options:"i"}},
-          {email: { $regex:searchText, $options:"i"}}
-        ]
+      if (searchText) {
+        query.$or = [
+          { name: { $regex: searchText, $options: "i" } },
+          { email: { $regex: searchText, $options: "i" } },
+        ];
       }
-      const cursor = usersCollection.find(query).limit(5)
-      const result = await cursor.toArray()
-      res.send(result)
-    })
+      const cursor = usersCollection.find(query).limit(5);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
-    app.get('/users/:email/role', async(req, res)=>{
-      const email = req.params.email
-      const query = {email}
-      const result = await usersCollection.findOne(query)
-      res.send(result)
-    })
+    app.get("/users/:email/role", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -78,17 +78,17 @@ async function run() {
       res.send(result);
     });
 
-    app.patch('/users/:id', async(req, res)=>{
-      const id = req.params.id
-      const updateRole = req.body
-      const query = {_id: new ObjectId(id)}
+    app.patch("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateRole = req.body;
+      const query = { _id: new ObjectId(id) };
       const changeRole = {
-        $set:{user_Role:updateRole.user_Role}
-      }
+        $set: { user_Role: updateRole.user_Role },
+      };
 
-      const result = await usersCollection.updateOne(query, changeRole)
-      res.send(result)
-    })
+      const result = await usersCollection.updateOne(query, changeRole);
+      res.send(result);
+    });
 
     app.get("/parcels", async (req, res) => {
       const query = {};
@@ -98,8 +98,8 @@ async function run() {
         query.senderEmail = email;
       }
 
-      if(pandingPickup){
-        query.deliveryStatus = pandingPickup
+      if (pandingPickup) {
+        query.deliveryStatus = pandingPickup;
       }
 
       const options = { sort: { createdAt: -1 } };
@@ -229,33 +229,36 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/riders', async(req,res)=>{
-      const query = {status:"pending"}
-      const cursor = ridersCollection.find(query)
-      const result = await cursor.toArray()
-      res.send(result)
-    })
+    app.get("/riders", async (req, res) => {
+      const cursor = ridersCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
-    app.patch('/riders/:id', async(req, res)=>{
-      const id = req.params.id
-      const query = {_id: new ObjectId(id)}
-      const updateInfo = req.body
+    app.patch("/riders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updateInfo = req.body;
       const update = {
-        $set:{status: updateInfo.status}
-      }
-      const result = await ridersCollection.updateOne(query, update)
-      res.send(result)
-    })
+        $set: { status: updateInfo.status },
+      };
+      const result = await ridersCollection.updateOne(query, update);
+      res.send(result);
+    });
 
     app.post("/riders", async (req, res) => {
       const ridersInfo = req.body;
       ridersInfo.status = "pending";
       ridersInfo.createtAt = new Date();
 
-      const riderEmail = ridersInfo.riderEmail
-      const isExist = await ridersCollection.findOne({riderEmail});
-      if(isExist){
-        return res.status(401).send({message: "You Are Already You have already sent the request"})
+      const riderEmail = ridersInfo.riderEmail;
+      const isExist = await ridersCollection.findOne({ riderEmail });
+      if (isExist) {
+        return res
+          .status(401)
+          .send({
+            message: "You Are Already You have already sent the request",
+          });
       }
       const result = await ridersCollection.insertOne(ridersInfo);
       res.send(result);
