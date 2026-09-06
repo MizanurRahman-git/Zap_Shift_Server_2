@@ -235,6 +235,40 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/riders/:email', async (req,res)=> {
+      const email = req.params.email
+      const query = {}
+      if(email){
+        query.riderEmail = email
+      }
+
+      const result = await ridersCollection.findOne(query)
+      res.send(result)
+    })
+
+    app.get("/riders/:district/available", async(req, res)=>{
+      const parcelDistrict = req.params.district
+      const query ={}
+      if(parcelDistrict){
+        query.riderDistrict = parcelDistrict,
+        query.workStatus = "Available"
+      }
+      const cursor =  ridersCollection.find(query)
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
+    app.patch('/rider/:email', async(req, res)=> {
+      const email = req.params.email
+      const updateInfo = req.body
+      const query = {riderEmail:email}
+      const update = {
+        $set:{workStatus: updateInfo.workStatus}
+      }
+      const result = await ridersCollection.updateOne(query, update)
+      res.send(result)
+    })
+
     app.patch("/riders/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
